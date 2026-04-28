@@ -1,0 +1,28 @@
+{
+  "name": "contentstudio",
+  "version": "1.0.0",
+  "description": "Social-media automation CLI for scheduling posts, managing media, accounts, comments, and approvals across Facebook, LinkedIn, Twitter/X, Instagram, YouTube, TikTok, Pinterest, and Google Business Profile via the ContentStudio API.",
+  "author": {
+    "name": "ContentStudio",
+    "url": "https://contentstudio.io"
+  },
+  "homepage": "https://api.contentstudio.io/guide",
+  "repository": "https://github.com/d4interactive/contentstudio-agent",
+  "license": "MIT",
+  "skills": ["./"],
+  "keywords": [
+    "contentstudio",
+    "social-media",
+    "scheduling",
+    "automation",
+    "ai-agent",
+    "facebook",
+    "linkedin",
+    "twitter",
+    "instagram",
+    "tiktok",
+    "youtube",
+    "pinterest",
+    "gmb"
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "name": "contentstudio-agent",
+  "owner": {
+    "name": "ContentStudio",
+    "url": "https://contentstudio.io"
+  },
+  "metadata": {
+    "description": "ContentStudio social-media automation skill for scheduling posts across 8+ platforms",
+    "version": "1.0.0"
+  },
+  "plugins": [
+    {
+      "name": "contentstudio",
+      "description": "Social-media automation CLI for scheduling posts, managing media, accounts, comments, and approvals across Facebook, LinkedIn, Twitter/X, Instagram, YouTube, TikTok, Pinterest, and Google Business Profile via the ContentStudio API.",
+      "source": "./",
+      "strict": false,
+      "skills": ["./"]
+    }
+  ]
+}

@@ -1,0 +1,69 @@
+{
+  "name": "contentstudio",
+  "version": "1.0.0",
+  "description": "ContentStudio CLI — schedule social-media posts, manage media, accounts, comments, and approvals across Facebook, LinkedIn, Twitter/X, Instagram, YouTube, TikTok, Pinterest, and Google Business Profile via the ContentStudio API.",
+  "main": "dist/index.js",
+  "bin": {
+    "contentstudio": "./dist/index.js"
+  },
+  "scripts": {
+    "dev": "tsup --watch",
+    "build": "tsup",
+    "start": "node ./dist/index.js",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "prepublishOnly": "npm run build"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "SKILL.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
+  "keywords": [
+    "contentstudio",
+    "cli",
+    "social-media",
+    "scheduling",
+    "automation",
+    "ai-agent",
+    "command-line",
+    "facebook",
+    "linkedin",
+    "twitter",
+    "instagram",
+    "tiktok",
+    "youtube",
+    "pinterest",
+    "gmb"
+  ],
+  "author": "ContentStudio",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/d4interactive/contentstudio-agent.git"
+  },
+  "homepage": "https://api.contentstudio.io/guide",
+  "bugs": {
+    "url": "https://github.com/d4interactive/contentstudio-agent/issues"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "chalk": "^4.1.2",
+    "form-data": "^4.0.1",
+    "node-fetch": "^2.7.0",
+    "yargs": "^17.7.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.19",
+    "@types/node-fetch": "^2.6.11",
+    "@types/yargs": "^17.0.32",
+    "nock": "^13.5.4",
+    "tsup": "^8.5.1",
+    "typescript": "^5.4.5",
+    "vitest": "^1.6.0"
+  }
+}
