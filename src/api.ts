@@ -144,6 +144,26 @@ export class Client {
     return this.request<T>("GET", p, { params });
   }
 
+  /**
+   * GET a paginated list endpoint and preserve Laravel-style pagination
+   * metadata (current_page / per_page / total / last_page / from / to)
+   * alongside the unwrapped `data` array.
+   *
+   * Returns `{ data, pagination? }`. `pagination` is undefined for endpoints
+   * that don't paginate (the API simply doesn't include the metadata fields).
+   */
+  async getPaginated<T = unknown>(
+    p: string,
+    params?: Record<string, unknown>,
+  ): Promise<PaginatedResponse<T>> {
+    const body = await this.request<any>("GET", p, { params, unwrap: false });
+    if (!body || typeof body !== "object" || !("data" in body)) {
+      return { data: body as T };
+    }
+    const pagination = extractPagination(body);
+    return { data: body.data as T, pagination };
+  }
+
   post<T = unknown>(
     p: string,
     body?: { json?: unknown; form?: FormData },
@@ -154,6 +174,44 @@ export class Client {
   delete<T = unknown>(p: string, body?: unknown): Promise<T> {
     return this.request<T>("DELETE", p, { json: body });
   }
+}
+
+/** Pagination metadata from the API (Laravel paginator style). */
+export interface Pagination {
+  current_page: number;
+  per_page: number;
+  total: number;
+  last_page: number;
+  from: number | null;
+  to: number | null;
+  has_more: boolean;
+}
+
+export interface PaginatedResponse<T> {
+  data: T;
+  pagination?: Pagination;
+}
+
+function extractPagination(body: any): Pagination | undefined {
+  if (
+    body &&
+    typeof body === "object" &&
+    typeof body.current_page === "number" &&
+    typeof body.last_page === "number" &&
+    typeof body.total === "number" &&
+    typeof body.per_page === "number"
+  ) {
+    return {
+      current_page: body.current_page,
+      per_page: body.per_page,
+      total: body.total,
+      last_page: body.last_page,
+      from: body.from ?? null,
+      to: body.to ?? null,
+      has_more: body.current_page < body.last_page,
+    };
+  }
+  return undefined;
 }
 
 async function handleResponse<T>(resp: Response, unwrap: boolean): Promise<T> {
@@ -228,7 +286,7 @@ export function listWorkspaces(
   c: Client,
   params: { page?: number; per_page?: number } = {},
 ) {
-  return c.get<any>("/workspaces", params);
+  return c.getPaginated<any>("/workspaces", params);
 }
 
 export function listAccounts(
@@ -241,7 +299,7 @@ export function listAccounts(
     per_page?: number;
   } = {},
 ) {
-  return c.get<any>(`/workspaces/${workspaceId}/accounts`, params);
+  return c.getPaginated<any>(`/workspaces/${workspaceId}/accounts`, params);
 }
 
 export function listContentCategories(
@@ -249,7 +307,7 @@ export function listContentCategories(
   workspaceId: string,
   params: { search?: string; page?: number; per_page?: number } = {},
 ) {
-  return c.get<any>(`/workspaces/${workspaceId}/content-categories`, params);
+  return c.getPaginated<any>(`/workspaces/${workspaceId}/content-categories`, params);
 }
 
 export function listLabels(
@@ -257,7 +315,7 @@ export function listLabels(
   workspaceId: string,
   params: { search?: string; page?: number; per_page?: number } = {},
 ) {
-  return c.get<any>(`/workspaces/${workspaceId}/labels`, params);
+  return c.getPaginated<any>(`/workspaces/${workspaceId}/labels`, params);
 }
 
 export function listCampaigns(
@@ -265,7 +323,7 @@ export function listCampaigns(
   workspaceId: string,
   params: { search?: string; page?: number; per_page?: number } = {},
 ) {
-  return c.get<any>(`/workspaces/${workspaceId}/campaigns`, params);
+  return c.getPaginated<any>(`/workspaces/${workspaceId}/campaigns`, params);
 }
 
 export function listTeamMembers(
@@ -273,7 +331,7 @@ export function listTeamMembers(
   workspaceId: string,
   params: { search?: string; page?: number; per_page?: number } = {},
 ) {
-  return c.get<any>(`/workspaces/${workspaceId}/team-members`, params);
+  return c.getPaginated<any>(`/workspaces/${workspaceId}/team-members`, params);
 }
 
 export function listMedia(
@@ -287,7 +345,7 @@ export function listMedia(
     per_page?: number;
   } = {},
 ) {
-  return c.get<any>(`/workspaces/${workspaceId}/media`, params);
+  return c.getPaginated<any>(`/workspaces/${workspaceId}/media`, params);
 }
 
 export function uploadMedia(
@@ -340,7 +398,7 @@ export function listPosts(
     "approval_assigned_to[]": params.approval_assigned_to,
     "approval_requested_by[]": params.approval_requested_by,
   };
-  return c.get<any>(`/workspaces/${workspaceId}/posts`, q);
+  return c.getPaginated<any>(`/workspaces/${workspaceId}/posts`, q);
 }
 
 export function createPost(c: Client, workspaceId: string, body: unknown) {
@@ -382,7 +440,7 @@ export function listComments(
   postId: string,
   params: { page?: number; per_page?: number } = {},
 ) {
-  return c.get<any>(`/workspaces/${workspaceId}/posts/${postId}/comments`, params);
+  return c.getPaginated<any>(`/workspaces/${workspaceId}/posts/${postId}/comments`, params);
 }
 
 export function addComment(

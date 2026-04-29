@@ -25,24 +25,28 @@ export function registerPosts<T>(yargs: Argv<T>): Argv<T> {
       run(async (argv: any, g) => {
         const { cfg, client } = buildClient(g);
         const wid = resolveWorkspace(cfg, g);
-        const data: any = await listPosts(client, wid, {
+        const resp = await listPosts(client, wid, {
           status: argv.status as string[] | undefined,
           date_from: argv["date-from"] ?? argv.dateFrom,
           date_to: argv["date-to"] ?? argv.dateTo,
           page: argv.page,
           per_page: argv["per-page"] ?? argv.perPage,
         });
-        const items = out.listish(data) as any[];
-        out.emitSuccess(data, g, () =>
-          out.table(
-            ["ID", "Status", "Scheduled", "Text"],
-            items.map((p) => [
-              String(p._id ?? p.id ?? "-"),
-              p.status ?? "-",
-              p.scheduled_at ?? p.publish_time ?? "-",
-              shortText(p),
-            ]),
-          ),
+        const items = (resp.data as any[]) ?? [];
+        out.emitSuccess(
+          resp.data,
+          g,
+          () =>
+            out.table(
+              ["ID", "Status", "Scheduled", "Text"],
+              items.map((p) => [
+                String(p._id ?? p.id ?? "-"),
+                p.status ?? "-",
+                p.scheduled_at ?? p.publish_time ?? "-",
+                shortText(p),
+              ]),
+            ),
+          { pagination: resp.pagination },
         );
       }),
     )

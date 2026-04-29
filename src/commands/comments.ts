@@ -17,21 +17,25 @@ export function registerComments<T>(yargs: Argv<T>): Argv<T> {
       run(async (argv: any, g) => {
         const { cfg, client } = buildClient(g);
         const wid = resolveWorkspace(cfg, g);
-        const data: any = await listComments(client, wid, String(argv.post_id), {
+        const resp = await listComments(client, wid, String(argv.post_id), {
           page: argv.page,
           per_page: argv["per-page"] ?? argv.perPage,
         });
-        const items = out.listish(data) as any[];
-        out.emitSuccess(data, g, () =>
-          out.table(
-            ["ID", "Author", "Note?", "Comment"],
-            items.map((c) => [
-              String(c._id ?? "-"),
-              c?.author?.full_name ?? c?.user_name ?? "-",
-              c.is_note ? "yes" : "no",
-              String(c.comment ?? "").slice(0, 60),
-            ]),
-          ),
+        const items = (resp.data as any[]) ?? [];
+        out.emitSuccess(
+          resp.data,
+          g,
+          () =>
+            out.table(
+              ["ID", "Author", "Note?", "Comment"],
+              items.map((c) => [
+                String(c._id ?? "-"),
+                c?.author?.full_name ?? c?.user_name ?? "-",
+                c.is_note ? "yes" : "no",
+                String(c.comment ?? "").slice(0, 60),
+              ]),
+            ),
+          { pagination: resp.pagination },
         );
       }),
     )

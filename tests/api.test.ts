@@ -9,6 +9,7 @@ import {
   getMe,
   listAccounts,
   listPosts,
+  listWorkspaces,
   postApproval,
   uploadMedia,
 } from "../src/api";
@@ -121,6 +122,73 @@ describe("Error mapping", () => {
     const scope = nock(BASE).get(`${PATH}/me`).times(2).reply(502, { message: "bad" });
     await expect(getMe(mkClient(1))).rejects.toBeInstanceOf(BackendError);
     expect(scope.isDone()).toBe(true);
+  });
+});
+
+describe("Pagination (Laravel envelope)", () => {
+  function paginatedEnvelope(data: unknown[], total: number, page = 1, perPage = 10) {
+    const lastPage = Math.max(1, Math.ceil(total / perPage));
+    return {
+      status: true,
+      message: "ok",
+      current_page: page,
+      per_page: perPage,
+      total,
+      last_page: lastPage,
+      from: (page - 1) * perPage + 1,
+      to: Math.min(page * perPage, total),
+      data,
+    };
+  }
+
+  it("listWorkspaces returns {data, pagination} when API includes pagination fields", async () => {
+    nock(BASE)
+      .get(`${PATH}/workspaces`)
+      .query(true)
+      .reply(200, paginatedEnvelope([{ _id: "w1" }, { _id: "w2" }], 48, 1, 2));
+
+    const resp = await listWorkspaces(mkClient(), { per_page: 2 });
+    expect(resp.data).toEqual([{ _id: "w1" }, { _id: "w2" }]);
+    expect(resp.pagination).toBeDefined();
+    expect(resp.pagination!.current_page).toBe(1);
+    expect(resp.pagination!.total).toBe(48);
+    expect(resp.pagination!.last_page).toBe(24);
+    expect(resp.pagination!.has_more).toBe(true);
+  });
+
+  it("listWorkspaces — has_more is false on the last page", async () => {
+    nock(BASE)
+      .get(`${PATH}/workspaces`)
+      .query(true)
+      .reply(200, paginatedEnvelope([{ _id: "w24" }], 48, 24, 2));
+
+    const resp = await listWorkspaces(mkClient(), { page: 24, per_page: 2 });
+    expect(resp.pagination!.has_more).toBe(false);
+    expect(resp.pagination!.current_page).toBe(24);
+  });
+
+  it("listAccounts returns pagination metadata too", async () => {
+    nock(BASE)
+      .get(`${PATH}/workspaces/ws-1/accounts`)
+      .query(true)
+      .reply(200, paginatedEnvelope([{ _id: "a1" }], 5, 1, 1));
+
+    const resp = await listAccounts(mkClient(), "ws-1", { per_page: 1 });
+    expect(resp.pagination!.total).toBe(5);
+    expect(resp.pagination!.has_more).toBe(true);
+  });
+
+  it("response without pagination fields → pagination undefined", async () => {
+    // Some endpoints (like /me) don't paginate — the API just returns {status, message, data}
+    // without current_page/total/etc. Our wrapper should leave pagination undefined.
+    nock(BASE)
+      .get(`${PATH}/workspaces`)
+      .query(true)
+      .reply(200, envelope([{ _id: "w1" }]));
+
+    const resp = await listWorkspaces(mkClient());
+    expect(resp.data).toEqual([{ _id: "w1" }]);
+    expect(resp.pagination).toBeUndefined();
   });
 });
 

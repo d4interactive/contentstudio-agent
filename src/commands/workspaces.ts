@@ -16,21 +16,25 @@ export function registerWorkspaces<T>(yargs: Argv<T>): Argv<T> {
           .option("per-page", { type: "number" }),
       run(async (argv: any, g) => {
         const { client } = buildClient(g);
-        const data: any = await listWorkspaces(client, {
+        const resp = await listWorkspaces(client, {
           page: argv.page,
           per_page: argv["per-page"] ?? argv.perPage,
         });
-        const items = out.listish(data) as any[];
-        out.emitSuccess(data, g, () =>
-          out.table(
-            ["ID", "Name", "Slug", "Timezone"],
-            items.map((w) => [
-              w._id ?? "-",
-              w.name ?? "-",
-              w.slug ?? "-",
-              w.timezone ?? "-",
-            ]),
-          ),
+        const items = (resp.data as any[]) ?? [];
+        out.emitSuccess(
+          resp.data,
+          g,
+          () =>
+            out.table(
+              ["ID", "Name", "Slug", "Timezone"],
+              items.map((w) => [
+                w._id ?? "-",
+                w.name ?? "-",
+                w.slug ?? "-",
+                w.timezone ?? "-",
+              ]),
+            ),
+          { pagination: resp.pagination },
         );
       }),
     )
@@ -44,8 +48,8 @@ export function registerWorkspaces<T>(yargs: Argv<T>): Argv<T> {
         try {
           cfg.requireApiKey();
           const client = new Client(cfg);
-          const list: any = await listWorkspaces(client, { per_page: 100 });
-          const items = out.listish(list) as any[];
+          const list = await listWorkspaces(client, { per_page: 100 });
+          const items = (list.data as any[]) ?? [];
           const hit = items.find((w) => w._id === argv.workspace_id);
           if (hit) name = hit.name ?? null;
         } catch {

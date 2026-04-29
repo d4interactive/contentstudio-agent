@@ -33,23 +33,27 @@ export function registerLookups<T>(yargs: Argv<T>): Argv<T> {
       run(async (argv: any, g) => {
         const { cfg, client } = buildClient(g);
         const wid = resolveWorkspace(cfg, g);
-        const data: any = await listAccounts(client, wid, {
+        const resp = await listAccounts(client, wid, {
           platform: argv.platform,
           search: argv.search,
           page: argv.page,
           per_page: argv["per-page"] ?? argv.perPage,
         });
-        const items = out.listish(data) as any[];
-        out.emitSuccess(data, g, () =>
-          out.table(
-            ["ID", "Platform", "Name", "Type"],
-            items.map((a) => [
-              String(a._id ?? a.platform_identifier ?? "-"),
-              a.platform ?? a.channel ?? "-",
-              a.account_name ?? a.name ?? a.username ?? "-",
-              a.account_type ?? "-",
-            ]),
-          ),
+        const items = (resp.data as any[]) ?? [];
+        out.emitSuccess(
+          resp.data,
+          g,
+          () =>
+            out.table(
+              ["ID", "Platform", "Name", "Type"],
+              items.map((a) => [
+                String(a._id ?? a.platform_identifier ?? "-"),
+                a.platform ?? a.channel ?? "-",
+                a.account_name ?? a.name ?? a.username ?? "-",
+                a.account_type ?? "-",
+              ]),
+            ),
+          { pagination: resp.pagination },
         );
       }),
     )
@@ -64,17 +68,21 @@ export function registerLookups<T>(yargs: Argv<T>): Argv<T> {
       run(async (argv: any, g) => {
         const { cfg, client } = buildClient(g);
         const wid = resolveWorkspace(cfg, g);
-        const data: any = await listCampaigns(client, wid, {
+        const resp = await listCampaigns(client, wid, {
           search: argv.search,
           page: argv.page,
           per_page: argv["per-page"] ?? argv.perPage,
         });
-        const items = out.listish(data) as any[];
-        out.emitSuccess(data, g, () =>
-          out.table(
-            ["ID", "Name"],
-            items.map((c) => [c._id ?? "-", c.name ?? "-"]),
-          ),
+        const items = (resp.data as any[]) ?? [];
+        out.emitSuccess(
+          resp.data,
+          g,
+          () =>
+            out.table(
+              ["ID", "Name"],
+              items.map((c) => [c._id ?? "-", c.name ?? "-"]),
+            ),
+          { pagination: resp.pagination },
         );
       }),
     )
@@ -89,17 +97,21 @@ export function registerLookups<T>(yargs: Argv<T>): Argv<T> {
       run(async (argv: any, g) => {
         const { cfg, client } = buildClient(g);
         const wid = resolveWorkspace(cfg, g);
-        const data: any = await listContentCategories(client, wid, {
+        const resp = await listContentCategories(client, wid, {
           search: argv.search,
           page: argv.page,
           per_page: argv["per-page"] ?? argv.perPage,
         });
-        const items = out.listish(data) as any[];
-        out.emitSuccess(data, g, () =>
-          out.table(
-            ["ID", "Name"],
-            items.map((c) => [c._id ?? "-", c.name ?? "-"]),
-          ),
+        const items = (resp.data as any[]) ?? [];
+        out.emitSuccess(
+          resp.data,
+          g,
+          () =>
+            out.table(
+              ["ID", "Name"],
+              items.map((c) => [c._id ?? "-", c.name ?? "-"]),
+            ),
+          { pagination: resp.pagination },
         );
       }),
     )
@@ -114,17 +126,21 @@ export function registerLookups<T>(yargs: Argv<T>): Argv<T> {
       run(async (argv: any, g) => {
         const { cfg, client } = buildClient(g);
         const wid = resolveWorkspace(cfg, g);
-        const data: any = await listLabels(client, wid, {
+        const resp = await listLabels(client, wid, {
           search: argv.search,
           page: argv.page,
           per_page: argv["per-page"] ?? argv.perPage,
         });
-        const items = out.listish(data) as any[];
-        out.emitSuccess(data, g, () =>
-          out.table(
-            ["ID", "Name"],
-            items.map((l) => [l._id ?? "-", l.name ?? "-"]),
-          ),
+        const items = (resp.data as any[]) ?? [];
+        out.emitSuccess(
+          resp.data,
+          g,
+          () =>
+            out.table(
+              ["ID", "Name"],
+              items.map((l) => [l._id ?? "-", l.name ?? "-"]),
+            ),
+          { pagination: resp.pagination },
         );
       }),
     )
@@ -139,22 +155,26 @@ export function registerLookups<T>(yargs: Argv<T>): Argv<T> {
       run(async (argv: any, g) => {
         const { cfg, client } = buildClient(g);
         const wid = resolveWorkspace(cfg, g);
-        const data: any = await listTeamMembers(client, wid, {
+        const resp = await listTeamMembers(client, wid, {
           search: argv.search,
           page: argv.page,
           per_page: argv["per-page"] ?? argv.perPage,
         });
-        const items = out.listish(data) as any[];
-        out.emitSuccess(data, g, () =>
-          out.table(
-            ["ID", "Name", "Email", "Role"],
-            items.map((t) => [
-              t._id ?? t.user_id ?? "-",
-              t.full_name ?? t.name ?? "-",
-              t.email ?? "-",
-              t.role ?? t.permission ?? "-",
-            ]),
-          ),
+        const items = (resp.data as any[]) ?? [];
+        out.emitSuccess(
+          resp.data,
+          g,
+          () =>
+            out.table(
+              ["ID", "Name", "Email", "Role"],
+              items.map((t) => [
+                t._id ?? t.user_id ?? "-",
+                t.full_name ?? t.name ?? "-",
+                t.email ?? "-",
+                t.role ?? t.permission ?? "-",
+              ]),
+            ),
+          { pagination: resp.pagination },
         );
       }),
     );

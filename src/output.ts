@@ -5,24 +5,33 @@
 import chalk from "chalk";
 
 import { ContentStudioError } from "./errors";
+import type { Pagination } from "./api";
 
 export interface CliContext {
   useJson: boolean;
 }
 
+export interface EmitOpts {
+  pagination?: Pagination;
+}
+
 /**
  * Render a successful command result.
  *
- * In JSON mode: writes `{"ok": true, "data": ...}` to stdout.
- * In human mode: calls `human(data)` if provided, else pretty-prints JSON.
+ * In JSON mode: writes `{"ok": true, "data": ..., "pagination"?: {...}}` to stdout.
+ * In human mode: calls `human(data)` if provided, then prints a pagination
+ * footer when present.
  */
 export function emitSuccess<T>(
   data: T,
   ctx: CliContext,
   human?: (data: T) => void,
+  opts: EmitOpts = {},
 ): void {
   if (ctx.useJson) {
-    process.stdout.write(JSON.stringify({ ok: true, data }, null, 2));
+    const envelope: Record<string, unknown> = { ok: true, data };
+    if (opts.pagination) envelope.pagination = opts.pagination;
+    process.stdout.write(JSON.stringify(envelope, null, 2));
     process.stdout.write("\n");
     return;
   }
@@ -30,6 +39,22 @@ export function emitSuccess<T>(
     human(data);
   } else {
     console.log(JSON.stringify(data, null, 2));
+  }
+  if (opts.pagination) {
+    paginationFooter(opts.pagination);
+  }
+}
+
+function paginationFooter(p: Pagination): void {
+  const { current_page, last_page, total, per_page, from, to, has_more } = p;
+  const range = from && to ? `${from}–${to}` : `${(current_page - 1) * per_page + 1}–${current_page * per_page}`;
+  const summary = `Showing ${range} of ${total} (page ${current_page}/${last_page})`;
+  if (has_more) {
+    console.log(
+      `\n${chalk.dim(summary)} ${chalk.yellow("·")} ${chalk.bold(`${total - (to ?? current_page * per_page)} more`)} ${chalk.dim("— rerun with --page " + (current_page + 1) + " for the next page, or --per-page " + total + " for all.")}`,
+    );
+  } else {
+    console.log(`\n${chalk.dim(summary)} ${chalk.green("✓ all results shown")}`);
   }
 }
 

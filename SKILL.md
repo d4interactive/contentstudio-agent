@@ -63,11 +63,85 @@ contentstudio workspaces:use <workspace_id>
 
 - **Always pass `--json` before the subcommand** for stable, parseable output.
 - **Envelope shape**:
-  - Success: `{"ok": true, "data": <payload>}`
+  - Success: `{"ok": true, "data": <payload>, "pagination"?: {...}}`
   - Error:   `{"ok": false, "error": {"type": "<ErrorType>", "message": "...", "http_status": <int>, "hint": "..."}}`
 - **Exit codes** are non-zero on error. Check both `returncode` and `ok`.
 - **Parse stdout only** — human messages go to stderr.
 - **Before any mutating action (posts/comments/media), run it with `--dry-run`** first to verify the payload is correct. `--dry-run` never touches the API.
+
+## Pagination — be proactive, don't silently truncate
+
+**All list commands return a `pagination` block** in JSON mode when more results exist than fit on one page:
+
+```json
+{
+  "ok": true,
+  "data": [ /* current page of items */ ],
+  "pagination": {
+    "current_page": 1,
+    "per_page": 10,
+    "total": 48,
+    "last_page": 5,
+    "from": 1,
+    "to": 10,
+    "has_more": true
+  }
+}
+```
+
+**Mandatory rule**: Whenever `pagination.has_more === true`, the user has more data than what was returned. **You MUST NOT silently treat the current page as "all results"**. Pick one of these three strategies:
+
+1. **Ask the user** (default for ambiguous requests):
+   > "I retrieved 10 of your 48 workspaces. Do you want me to fetch the rest, or is the first 10 enough for what you're doing?"
+
+2. **Auto-paginate** — if the user's request implies they want everything (e.g. "list ALL my accounts", "show every draft post", "delete all queued posts"):
+   - Call again with `--per-page <total>` to get everything in one round-trip:
+     ```bash
+     contentstudio --json workspaces:list --per-page 48
+     ```
+   - Or iterate `--page 2`, `--page 3`, … `--page <last_page>` if `total` is large (>200) and you want bounded pages.
+
+3. **Filter, don't paginate** — if the user asked for something specific (e.g. "Facebook accounts only"), use the relevant filter flag (`--platform facebook`, `--search "..."`, `--status draft`) instead of paginating. Smaller result set = no pagination needed.
+
+### Quick decision tree for the agent
+
+```
+Did the user say "all" / "every" / "complete list" / "every single"?
+  → YES: auto-paginate using --per-page <pagination.total>
+  → NO:
+      Did the user give a specific count? ("show me top 5", "first 20 posts")
+        → YES: respect that count; use --per-page accordingly
+        → NO:
+            pagination.has_more === true?
+              → YES: ASK the user before assuming you have everything
+              → NO: you have all the data; proceed
+```
+
+### Examples
+
+**User**: "list my workspaces"
+**Agent should**:
+1. Run `contentstudio --json workspaces:list --per-page 50` (high default to often avoid pagination)
+2. If `pagination.has_more` is still true, say: "I see 50 of N workspaces. Want me to fetch all N?"
+
+**User**: "delete all my draft posts"
+**Agent should**:
+1. Run `contentstudio --json posts:list --status draft --per-page 1` to peek at `total`
+2. Run `contentstudio --json posts:list --status draft --per-page <total>` to get them all
+3. Iterate over `data[]` and delete each
+4. Never delete just the first page and report "done"
+
+**User**: "show me my Facebook accounts"
+**Agent should**:
+1. Use `--platform facebook` filter — usually returns 0 or a handful, no pagination concern
+2. If `has_more` still true (>20 FB accounts), ask before auto-fetching
+
+### Endpoints that paginate
+
+All `*:list` commands paginate:
+`workspaces:list`, `accounts:list`, `posts:list`, `comments:list`, `media:list`, `campaigns:list`, `categories:list`, `labels:list`, `team:list`.
+
+Non-list commands (`auth:whoami`, `posts:create`, `posts:delete`, `media:upload`, etc.) never include `pagination` in their envelope.
 
 ---
 

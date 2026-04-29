@@ -22,24 +22,28 @@ export function registerMedia<T>(yargs: Argv<T>): Argv<T> {
       run(async (argv: any, g) => {
         const { cfg, client } = buildClient(g);
         const wid = resolveWorkspace(cfg, g);
-        const data: any = await listMedia(client, wid, {
+        const resp = await listMedia(client, wid, {
           type: argv.type,
           sort: argv.sort,
           search: argv.search,
           page: argv.page,
           per_page: argv["per-page"] ?? argv.perPage,
         });
-        const items = out.listish(data) as any[];
-        out.emitSuccess(data, g, () =>
-          out.table(
-            ["ID", "Type", "Name", "Size"],
-            items.map((m) => [
-              String(m._id ?? "-"),
-              m.mime_type ?? m.type ?? "-",
-              m.name ?? m.filename ?? "-",
-              String(m.size ?? m.file_size ?? "-"),
-            ]),
-          ),
+        const items = (resp.data as any[]) ?? [];
+        out.emitSuccess(
+          resp.data,
+          g,
+          () =>
+            out.table(
+              ["ID", "Type", "Name", "Size"],
+              items.map((m) => [
+                String(m._id ?? "-"),
+                m.mime_type ?? m.type ?? "-",
+                m.name ?? m.filename ?? "-",
+                String(m.size ?? m.file_size ?? "-"),
+              ]),
+            ),
+          { pagination: resp.pagination },
         );
       }),
     )
