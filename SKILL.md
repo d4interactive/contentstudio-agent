@@ -8,12 +8,12 @@ metadata: {"openclaw":{"emoji":"📅","requires":{"bins":["contentstudio"],"env"
 ## Install ContentStudio CLI if it doesn't exist
 
 ```bash
-npm install -g contentstudio
+npm install -g contentstudio-cli
 # or
-pnpm install -g contentstudio
+pnpm install -g contentstudio-cli
 ```
 
-npm release: https://www.npmjs.com/package/contentstudio
+npm release: https://www.npmjs.com/package/contentstudio-cli
 contentstudio-agent github: https://github.com/d4interactive/contentstudio-agent
 contentstudio API docs: https://api.contentstudio.io/api-docs
 official website: https://contentstudio.io

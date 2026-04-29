@@ -48,16 +48,16 @@ npm publish --access public
 ```
 
 Check the package page:
-- https://www.npmjs.com/package/contentstudio
+- https://www.npmjs.com/package/contentstudio-cli
 
 ## 5. Verify install from a clean machine / dir
 
 ```bash
 # Throw away local install
-npm uninstall -g contentstudio 2>/dev/null
+npm uninstall -g contentstudio-cli 2>/dev/null
 
 # Install from the npm registry
-npm install -g contentstudio
+npm install -g contentstudio-cli
 
 # Verify
 which contentstudio          # → /usr/local/bin/contentstudio (or similar)

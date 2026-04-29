@@ -6,7 +6,7 @@ or any AI agent (Claude Code, Cursor, OpenCode, Codex, …).
 
 - Drives your **already-deployed ContentStudio account** over HTTPS — no local
   server needed.
-- **Dual install path** for AI agents: `npm install -g contentstudio` (the CLI)
+- **Dual install path** for AI agents: `npm install -g contentstudio-cli` (the CLI)
   + `npx skills add d4interactive/contentstudio-agent` (the skill).
 - **JSON output mode** (`--json`) for stable, parseable agent integration.
 - **`--dry-run`** on every mutation — preview the payload before sending.
@@ -15,9 +15,9 @@ or any AI agent (Claude Code, Cursor, OpenCode, Codex, …).
 
 ```bash
 # Install the CLI globally
-npm install -g contentstudio
+npm install -g contentstudio-cli
 # or
-pnpm install -g contentstudio
+pnpm install -g contentstudio-cli
 ```
 
 Verify:
