@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.0.3 — account connection commands
+
+Added 5 new commands for managing social-account connections:
+
+- **`platforms:list`** — list all 12+ platforms available for connection, with their `connection_method` (`oauth` / `credentials` / `manual`).
+- **`accounts:connect <platform>`** — generate a one-time OAuth URL for connecting a new account; `--reconnect --account-id <id>` to refresh expired accounts.
+- **`accounts:add-bluesky --handle <h> --app-password <p>`** — credential-based Bluesky add (no browser). Password is redacted in `--dry-run` output.
+- **`accounts:add-facebook-group --name <n> [--image <url>]`** — manual Facebook Group connection.
+- **`facebook:text-backgrounds`** — list Facebook colored-background presets used in `facebook_options.facebook_background_id` on plain-text posts.
+
+All new commands support `--json` (mutations also support `--dry-run`).
+
 ## 1.0.2 — pagination metadata for AI agents
 
 - All `*:list` commands now surface Laravel pagination metadata (`current_page`, `per_page`, `total`, `last_page`, `from`, `to`, `has_more`) in the JSON envelope as a sibling of `data`.

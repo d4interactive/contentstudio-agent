@@ -166,13 +166,26 @@ All commands are invoked as `contentstudio <group>:<command>`.
 | `workspaces:use <id>` | Set active workspace |
 | `workspaces:current` | Show active workspace |
 
-### Social accounts (read)
+### Social accounts (read + connect)
 
 | Command | Purpose |
 |---------|---------|
 | `accounts:list [--platform <p>] [--search <q>]` | List connected social accounts |
+| `platforms:list` | List platforms supported for new account connections |
+| `accounts:connect <platform>` | Generate a one-time OAuth URL to connect a new account |
+| `accounts:connect <platform> --reconnect --account-id <id>` | Refresh an expired/invalid account |
+| `accounts:add-bluesky --handle <h> --app-password <p>` | Connect a Bluesky account (no browser — uses app password) |
+| `accounts:add-facebook-group --name <n> [--image <url>]` | Manually add a Facebook Group connection |
 
-`--platform` values: `facebook`, `linkedin`, `twitter`, `instagram`, `youtube`, `tiktok`, `pinterest`, `gmb`.
+`--platform` values for `accounts:list` filter: `facebook`, `linkedin`, `twitter`, `instagram`, `youtube`, `tiktok`, `pinterest`, `gmb`.
+
+`<platform>` values for `accounts:connect`: `facebook`, `facebook-profile`, `instagram`, `instagram-via-facebook`, `twitter`, `linkedin`, `pinterest`, `tiktok`, `youtube`, `threads`, `gmb`, `tumblr`.
+
+**Account-connection flow for AI agents:**
+1. Run `platforms:list` to see what's supported and which method each uses (`oauth` / `credentials` / `manual`).
+2. For OAuth platforms (most), call `accounts:connect <platform>` and surface the returned URL to the user — they open it in their browser to authorize. The CLI itself never handles credentials.
+3. For Bluesky, ask the user for their handle + app-password (link them to <https://bsky.app/settings/app-passwords>) and call `accounts:add-bluesky`.
+4. For Facebook Groups, just call `accounts:add-facebook-group --name "..."`.
 
 ### Posts
 
@@ -210,6 +223,12 @@ All commands are invoked as `contentstudio <group>:<command>`.
 | `categories:list` | List content categories |
 | `labels:list` | List labels |
 | `team:list` | List workspace team members |
+
+### Facebook helpers
+
+| Command | Purpose |
+|---------|---------|
+| `facebook:text-backgrounds` | List Facebook colored-background presets (use `id` as `facebook_options.facebook_background_id` on plain-text posts) |
 
 ---
 

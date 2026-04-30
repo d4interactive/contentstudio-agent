@@ -3,11 +3,16 @@ import nock from "nock";
 
 import {
   Client,
+  addBlueskyAccount,
   addComment,
+  addFacebookGroup,
+  connectAccount,
   createPost,
   deletePost,
   getMe,
   listAccounts,
+  listFacebookTextBackgrounds,
+  listPlatforms,
   listPosts,
   listWorkspaces,
   postApproval,
@@ -189,6 +194,104 @@ describe("Pagination (Laravel envelope)", () => {
     const resp = await listWorkspaces(mkClient());
     expect(resp.data).toEqual([{ _id: "w1" }]);
     expect(resp.pagination).toBeUndefined();
+  });
+});
+
+describe("Account connection (v1.0.3)", () => {
+  it("listPlatforms hits /platforms", async () => {
+    nock(BASE)
+      .get(`${PATH}/platforms`)
+      .reply(200, envelope([{ platform: "facebook", connection_method: "oauth" }]));
+    const data: any = await listPlatforms(mkClient());
+    expect(Array.isArray(data)).toBe(true);
+    expect(data[0].platform).toBe("facebook");
+  });
+
+  it("connectAccount sends process=connect by default", async () => {
+    let qs: any = {};
+    nock(BASE)
+      .post(`${PATH}/workspaces/ws-1/connect/facebook`)
+      .query((q) => {
+        qs = q;
+        return true;
+      })
+      .reply(200, envelope({ authorization_url: "https://oauth.example/...?token=abc" }));
+    await connectAccount(mkClient(), "ws-1", "facebook", { process: "connect" });
+    expect(qs.process).toBe("connect");
+    expect(qs.account_id).toBeUndefined();
+  });
+
+  it("connectAccount with reconnect + account_id", async () => {
+    let qs: any = {};
+    nock(BASE)
+      .post(`${PATH}/workspaces/ws-1/connect/facebook`)
+      .query((q) => {
+        qs = q;
+        return true;
+      })
+      .reply(200, envelope({ authorization_url: "https://oauth.example/..." }));
+    await connectAccount(mkClient(), "ws-1", "facebook", {
+      process: "reconnect",
+      accountId: "acc-123",
+    });
+    expect(qs.process).toBe("reconnect");
+    expect(qs.account_id).toBe("acc-123");
+  });
+
+  it("addBlueskyAccount posts {handle, app_password}", async () => {
+    let received: any;
+    nock(BASE)
+      .post(`${PATH}/workspaces/ws-1/add/bluesky`, (b) => {
+        received = b;
+        return true;
+      })
+      .reply(200, envelope({ _id: "bsky-1" }));
+    await addBlueskyAccount(mkClient(), "ws-1", "alice.bsky.social", "p4ss-w0rd");
+    expect(received).toEqual({
+      handle: "alice.bsky.social",
+      app_password: "p4ss-w0rd",
+    });
+  });
+
+  it("addFacebookGroup posts {name} only when no image", async () => {
+    let received: any;
+    nock(BASE)
+      .post(`${PATH}/workspaces/ws-1/add/facebook-group`, (b) => {
+        received = b;
+        return true;
+      })
+      .reply(200, envelope({ _id: "fb-grp-1" }));
+    await addFacebookGroup(mkClient(), "ws-1", "Cool Group");
+    expect(received).toEqual({ name: "Cool Group" });
+  });
+
+  it("addFacebookGroup posts {name, image} when image given", async () => {
+    let received: any;
+    nock(BASE)
+      .post(`${PATH}/workspaces/ws-1/add/facebook-group`, (b) => {
+        received = b;
+        return true;
+      })
+      .reply(200, envelope({ _id: "fb-grp-2" }));
+    await addFacebookGroup(
+      mkClient(),
+      "ws-1",
+      "Cool Group",
+      "https://example.com/cover.jpg",
+    );
+    expect(received).toEqual({
+      name: "Cool Group",
+      image: "https://example.com/cover.jpg",
+    });
+  });
+
+  it("listFacebookTextBackgrounds hits /facebook/text-backgrounds", async () => {
+    nock(BASE)
+      .get(`${PATH}/facebook/text-backgrounds`)
+      .reply(200, envelope([{ id: "bg-1", type: "solid", description: "Solid red" }]));
+    const data: any = await listFacebookTextBackgrounds(mkClient());
+    expect(Array.isArray(data)).toBe(true);
+    expect(data[0].id).toBe("bg-1");
   });
 });
 

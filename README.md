@@ -146,6 +146,56 @@ contentstudio --json team:list
 
 All support `--page`, `--per-page`, and `--search` filters.
 
+## Connecting Social Accounts
+
+Three ways to add new accounts to a workspace, depending on the platform.
+
+### List which platforms are connectable
+
+```bash
+contentstudio --json platforms:list
+```
+
+Returns all 12+ supported platforms with their `connection_method` (`oauth`, `credentials`, or `manual`) and the endpoint to call.
+
+### OAuth platforms (Facebook, LinkedIn, Twitter, Instagram, YouTube, TikTok, Pinterest, GMB, Threads, Tumblr)
+
+```bash
+contentstudio --json accounts:connect facebook
+# Returns a one-time authorization_url — open it in your browser to authorize.
+```
+
+To **reconnect** an existing account that's expired or invalid:
+```bash
+contentstudio --json accounts:connect facebook --reconnect --account-id <existing_account_id>
+```
+
+Available `<platform>` values: `facebook`, `facebook-profile`, `instagram`, `instagram-via-facebook`, `twitter`, `linkedin`, `pinterest`, `tiktok`, `youtube`, `threads`, `gmb`, `tumblr`.
+
+### Bluesky (credential-based, no browser)
+
+Generate an app password at <https://bsky.app/settings/app-passwords> first, then:
+
+```bash
+contentstudio --json accounts:add-bluesky \
+  --handle yourname.bsky.social \
+  --app-password xxxx-xxxx-xxxx-xxxx
+```
+
+⚠️ Use the Bluesky **app password**, NOT your main account password. The CLI redacts it from `--dry-run` output but it's still sent to ContentStudio's API over HTTPS.
+
+### Facebook Groups (manual)
+
+```bash
+contentstudio --json accounts:add-facebook-group \
+  --name "My Community Group" \
+  --image https://example.com/group-cover.jpg
+```
+
+The image URL is optional.
+
+All three connect commands support `--dry-run` to preview the payload without calling the API.
+
 ## Creating Posts
 
 There are two ways to create a post: **shortcut flags** for simple cases, or **`--body <file.json>`** for the full schema.
@@ -667,13 +717,18 @@ contentstudio --json posts:list --status pending_approval --per-page 50 \
 
 ## API Endpoints
 
-The CLI wraps these 15 endpoints from the ContentStudio v1 public API. Base URL: `https://api.contentstudio.io/api/v1`.
+The CLI wraps these 20 endpoints from the ContentStudio v1 public API. Base URL: `https://api.contentstudio.io/api/v1`.
 
 | Method | Endpoint | CLI command |
 |--------|----------|-------------|
 | GET    | `/me` | `auth:whoami` |
+| GET    | `/platforms` | `platforms:list` |
+| GET    | `/facebook/text-backgrounds` | `facebook:text-backgrounds` |
 | GET    | `/workspaces` | `workspaces:list` |
 | GET    | `/workspaces/{w}/accounts` | `accounts:list` |
+| POST   | `/workspaces/{w}/connect/{platform}` | `accounts:connect <platform>` |
+| POST   | `/workspaces/{w}/add/bluesky` | `accounts:add-bluesky` |
+| POST   | `/workspaces/{w}/add/facebook-group` | `accounts:add-facebook-group` |
 | GET    | `/workspaces/{w}/campaigns` | `campaigns:list` |
 | GET    | `/workspaces/{w}/content-categories` | `categories:list` |
 | GET    | `/workspaces/{w}/labels` | `labels:list` |

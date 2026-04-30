@@ -460,5 +460,81 @@ export function addComment(
   });
 }
 
+// ─────────────────────────────────────────────────────────────────
+// Account Connection — list platforms, OAuth init, manual add
+// (added in v1.0.3)
+// ─────────────────────────────────────────────────────────────────
+
+/**
+ * GET /platforms — list every social platform available for connection,
+ * with the connection method (oauth/credentials/manual), required fields,
+ * and the endpoint to call.
+ */
+export function listPlatforms(c: Client) {
+  return c.get<any>("/platforms");
+}
+
+/**
+ * POST /workspaces/{w}/connect/{platform}
+ *
+ * Generates a one-time OAuth authorization URL for the chosen platform.
+ * Use process="connect" for new accounts, process="reconnect" (with
+ * accountId) to refresh an expired/invalid account.
+ */
+export function connectAccount(
+  c: Client,
+  workspaceId: string,
+  platform: string,
+  opts: { process: "connect" | "reconnect"; accountId?: string },
+) {
+  const params: Record<string, unknown> = { process: opts.process };
+  if (opts.accountId) params.account_id = opts.accountId;
+  return c.request<any>(
+    "POST",
+    `/workspaces/${workspaceId}/connect/${platform}`,
+    { params },
+  );
+}
+
+/**
+ * POST /workspaces/{w}/add/bluesky — connect a Bluesky profile via handle +
+ * app password. No browser step.
+ */
+export function addBlueskyAccount(
+  c: Client,
+  workspaceId: string,
+  handle: string,
+  appPassword: string,
+) {
+  return c.post<any>(`/workspaces/${workspaceId}/add/bluesky`, {
+    json: { handle, app_password: appPassword },
+  });
+}
+
+/**
+ * POST /workspaces/{w}/add/facebook-group — manually add a Facebook Group
+ * by name (and optional image URL). No browser step.
+ */
+export function addFacebookGroup(
+  c: Client,
+  workspaceId: string,
+  name: string,
+  image?: string,
+) {
+  const body: Record<string, unknown> = { name };
+  if (image) body.image = image;
+  return c.post<any>(`/workspaces/${workspaceId}/add/facebook-group`, {
+    json: body,
+  });
+}
+
+/**
+ * GET /facebook/text-backgrounds — list Facebook colored-background presets
+ * accepted by `facebook_options.facebook_background_id` on POST /posts.
+ */
+export function listFacebookTextBackgrounds(c: Client) {
+  return c.get<any>("/facebook/text-backgrounds");
+}
+
 // Re-export ContentStudioError for convenience in commands.
 export { ContentStudioError };
