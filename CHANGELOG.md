@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.0.4 — update-check banner + version inlining
+
+- New: when a newer `contentstudio-cli` is published to npm, the CLI now prints a single-line "update available" banner to stderr on startup, with install + skill-refresh hints.
+- Banner is **suppressed** when:
+  - `--json`, `--version`, or `--help` is in argv (avoids corrupting machine-readable / metadata output)
+  - stderr isn't a TTY (avoids polluting log files / pipes)
+  - `CONTENTSTUDIO_NO_UPDATE_CHECK=1` is set
+- Update check is **fire-and-forget** (never blocks the command), result cached at `~/.config/contentstudio/.update-check.json` for 24h.
+- Fixed: `VERSION` constant now reads from `package.json` at build time via tsup `define` — older builds had `User-Agent` header reporting `1.0.0` regardless of actual version.
+- 22 new unit tests for the update checker (76/76 passing).
+
 ## 1.0.3 — account connection commands
 
 Added 5 new commands for managing social-account connections:

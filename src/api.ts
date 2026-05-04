@@ -21,7 +21,11 @@ import {
   fromHttpStatus,
 } from "./errors";
 
-export const VERSION = "1.0.0";
+// Replaced at build time by tsup's `define` (see tsup.config.ts).
+declare const __VERSION__: string;
+
+export const VERSION: string =
+  typeof __VERSION__ !== "undefined" ? __VERSION__ : "0.0.0-dev";
 export const USER_AGENT = `contentstudio-cli/${VERSION} (+https://github.com/d4interactive/contentstudio-agent)`;
 export const DEFAULT_TIMEOUT_MS = 30_000;
 

@@ -12,6 +12,7 @@
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
 
+import { VERSION } from "./api";
 import { registerAuth } from "./commands/auth";
 import { registerComments } from "./commands/comments";
 import { registerConnect } from "./commands/connect";
@@ -20,10 +21,17 @@ import { registerLookups } from "./commands/lookups";
 import { registerMedia } from "./commands/media";
 import { registerPosts } from "./commands/posts";
 import { registerWorkspaces } from "./commands/workspaces";
+import { maybeNotifyUpdate } from "./updateCheck";
+
+// Print "update available" banner if a newer version is on npm. Cached for
+// 24h, fire-and-forget, never blocks. Honors --json / --help / non-TTY /
+// CONTENTSTUDIO_NO_UPDATE_CHECK=1 to stay quiet when appropriate.
+maybeNotifyUpdate(VERSION);
 
 let cli = yargs(hideBin(process.argv))
   .scriptName("contentstudio")
   .usage("$0 <command> [options]")
+  .version(VERSION)
   .option("json", {
     type: "boolean",
     default: false,
