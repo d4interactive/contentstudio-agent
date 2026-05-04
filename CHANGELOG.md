@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.0.5 — workspace confirmation before mutations
+
+- SKILL.md: agents must now confirm the target workspace with the user before any mutating command (`accounts:connect`, `accounts:add-bluesky`, `accounts:add-facebook-group`, `posts:create`, `posts:delete`, `posts:approve`, `posts:reject`, `comments:add`, `media:upload`) instead of silently using whatever workspace is active in the CLI.
+- Read-only listings (`*:list`, `workspaces:current`, etc.) continue to use the active workspace silently — the rule only applies to mutations.
+- Documents the recommended pattern: run `workspaces:current`, surface the active workspace to the user, ask whether to proceed there or pick another, then either `workspaces:use <id>` or pass `--workspace <id>` for a one-off override.
+- No CLI source-code changes — the CLI's default-to-active-workspace behavior is unchanged.
+
 ## 1.0.4 — update-check banner + version inlining
 
 - New: when a newer `contentstudio-cli` is published to npm, the CLI now prints a single-line "update available" banner to stderr on startup, with install + skill-refresh hints.
