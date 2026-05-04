@@ -69,6 +69,23 @@ contentstudio workspaces:use <workspace_id>
 - **Parse stdout only** — human messages go to stderr.
 - **Before any mutating action (posts/comments/media), run it with `--dry-run`** first to verify the payload is correct. `--dry-run` never touches the API.
 
+### Confirm the target workspace before mutating actions
+
+The CLI silently defaults to the active workspace (whatever was set by `workspaces:use`). That default is fine for **read-only** calls (`workspaces:list`, `accounts:list`, `posts:list`, `media:list`, etc.) — just use the active workspace.
+
+But for any **mutating** action — `accounts:connect`, `accounts:add-bluesky`, `accounts:add-facebook-group`, `posts:create`, `posts:delete`, `posts:approve`, `posts:reject`, `comments:add`, `media:upload` — you MUST confirm the workspace with the user first, even if a workspace is already active. Don't assume the active workspace is the one they want to mutate.
+
+Pattern:
+
+1. Run `contentstudio --json workspaces:current` to see what's active.
+2. Tell the user: "Your active workspace is **`<name>`** (`<id>`). Do you want to connect/post/delete in this workspace, or a different one?"
+3. If they say a different one, run `workspaces:list`, let them pick, then either:
+   - Run `workspaces:use <id>` to switch the default, or
+   - Pass `--workspace <id>` on the single mutating call (preferred when it's a one-off — does not change the active workspace).
+4. Only then run the mutating command.
+
+This is mandatory even when the user's request seems to imply the active workspace ("connect a Facebook page", "create a draft post") — they may have just switched contexts in their head and forgotten which workspace is active in the CLI.
+
 ## Pagination — be proactive, don't silently truncate
 
 **All list commands return a `pagination` block** in JSON mode when more results exist than fit on one page:
